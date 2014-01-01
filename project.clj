@@ -6,6 +6,7 @@
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [enlive "1.1.5"]
                  [bytebuffer "0.2.0"]
+                 [nio "1.0.2"]
                  [cc.artifice/clj-ml "0.5.0-SNAPSHOT"]
                  [gloss "0.2.2"]
                  [reduce-fsm "0.1.0"]
