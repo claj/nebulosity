@@ -10,6 +10,8 @@
                  [cc.artifice/clj-ml "0.5.0-SNAPSHOT"]
                  [gloss "0.2.2"]
                  [reduce-fsm "0.1.0"]
+                 [zookeeper-clj "0.9.1"]
+                 [clj-net-pcap "1.6.0"]
                  [com.cemerick/pomegranate "0.2.0"]
                  [org.clojure/core.logic "0.8.5"]
                  [org.clojure/core.match "0.2.0"]

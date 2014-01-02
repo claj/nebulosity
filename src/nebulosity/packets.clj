@@ -51,5 +51,26 @@
 ;;cannot take IHL>5 ATM
 
 
+(def tcp-frame (g/compile-frame 
+                (g/ordered-map :source-port :uint16
+                 :destination-port :uint16
+                 :sequence-number :uint32
+                 :ack-number :uint32
+                 :flags (g/bit-map :data-offset 4
+                                   :reserved 3
+                                   :ns 1
+                                   :cwr 1
+                                   :ece 1
+                                   :urg 1
+                                   :ack 1
+                                   :psh 1
+                                   :rst 1
+                                   :syn 1
+                                   :fin 1)
+                 :window-size :uint16
+                 :checksum :uint16
+                 :urgent-pointer :uint16)))
 
+;;WARNING WARNING WARNING
+;;cannot handle Options for data offset > 5
 
