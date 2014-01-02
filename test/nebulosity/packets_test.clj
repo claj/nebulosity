@@ -55,3 +55,12 @@
   ;; :destination-port 3372, 
   ;; :source-port 80}
 )
+
+;;User Datagram Protocol, Src Port: 53, Dst Port: 3009
+
+(deftest read-udp-header
+ (let [parsed-data (gloss.io/decode nebulosity.packets/udp-frame (nio/byte-buffer (nio/mmap "resources/udpheader.bytes")))]
+    (is (= 53 (:source-port parsed-data)))
+    (is (= 3009 (:destination-port parsed-data)))
+    (is (= 154 (:length parsed-data)))
+))

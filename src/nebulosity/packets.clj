@@ -74,3 +74,10 @@
 ;;WARNING WARNING WARNING
 ;;cannot handle Options for data offset > 5
 
+(def udp-frame (g/compile-frame
+                (g/ordered-map :source-port :uint16
+                               :destination-port :uint16
+                               :length :uint16
+                               :checksum :uint16)))
+
+
