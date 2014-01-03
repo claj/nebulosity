@@ -35,4 +35,6 @@
                  [org.clojure/data.fressian "0.2.0"]
                  [org.clojure/data.finger-tree "0.0.1"]
                  [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
-                 [criterium "0.4.2"]])
+                 [criterium "0.4.2"]
+                 [seesaw "1.4.4"]])
+
