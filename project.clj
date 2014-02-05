@@ -47,7 +47,7 @@
                  [com.datomic/datomic-free "0.9.4497"]
                  [net.cgrand/parsley "0.9.2"]
                  [seesaw "1.4.4"]
-                 [threadgrid/pldb "0.8.3"]
+                 [pldb "0.8.3"]
 ]
   :profiles {:dev
              {:dependencies [[storm "0.9.0.1"]
