@@ -3,10 +3,10 @@
   :url "https://github.com/claj/nebulosity"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-:source-paths ["src/clj"]
-:java-source-paths ["src/jvm"]
-:resource-paths ["multilang"]
-:aot :all
+  :source-paths ["src/clj"]
+  :java-source-paths ["src/jvm"]
+  :resource-paths ["multilang"]
+  :aot :all
 
   :dependencies [
                  [org.clojure/clojure "1.5.1"]
@@ -42,16 +42,13 @@
                  [org.clojure/data.finger-tree "0.0.1"]
                  [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
                  [criterium "0.4.2"]
-;;x                 [pldb "0.1.5"]
                  [org.bouncycastle/bcprov-jdk15on "1.50"]
                  [com.datomic/datomic-free "0.9.4497"]
                  [net.cgrand/parsley "0.9.2"]
-                 [seesaw "1.4.4"]
-                 [pldb "0.8.3"]
-]
+                 [seesaw "1.4.4"]]
   :profiles {:dev
              {:dependencies [[storm "0.9.0.1"]
                              [org.testng/testng "6.8.5"]
                              [org.easytesting/fest-assert-core "2.0M8"]
-                              [org.mockito/mockito-all "1.9.0"]
-                              [org.jmock/jmock "2.6.0"]]}})
+                             [org.mockito/mockito-all "1.9.0"]
+                             [org.jmock/jmock "2.6.0"]]}})
