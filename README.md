@@ -2,6 +2,14 @@
 
 clojure code surrounded by nebolsity
 
+## Educational
+
+trying to apply a word-space thing to maneuver students through a dense and 
+by nescissity not very well curated curriculum. Shoehorning it all into
+PostgreSQL (but kept in memory during usage!)
+
+Aiming to be a small web application.
+
 ## GUI tree experiments
 inspired by
 
