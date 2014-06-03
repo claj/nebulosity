@@ -9,7 +9,8 @@
   :aot :all
 
   :dependencies [
-                 [org.clojure/clojure "1.5.1"]
+                 [org.clojure/clojure "1.6.0"]
+                 [midje "1.6.3"]
                  [enlive "1.1.5"]
                  [bytebuffer "0.2.0"]
                  [nio "1.0.2"]
