@@ -2,12 +2,14 @@
   "a task description
 
 TODO: connect the vector things to persistence layer
-TODO: add some gui for testing out the various tasks and create data as different students"
+TODO: add some gui for testing out the various tasks and create data as different students
+TODO: transient vector operations
+TODO: vectors and students as refs
+TODO: create a Type vector that can be serialized to edn/read cleverly by postgresql"
   (:use [clojure.data.generators :only [reservoir-sample]]))
 
 (def key-size 12)
 (def vector-size 1000)
-
 (def reservoir (apply vector-of :long (range vector-size)))
 
 (defn generate-key 
@@ -19,9 +21,6 @@ TODO: add some gui for testing out the various tasks and create data as differen
   "generate a 1000 double vector, all zeroes"
   []
   (apply vector-of :double (repeat vector-size (double 0))))
-
-;;TODO: transient vector operations.
-;;TODO: atomic vectors
 
 (defn generate-task 
   "creates a task, 

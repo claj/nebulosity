@@ -12,12 +12,44 @@ TODO: add some logging thing to be able to rerun everyhting when things go haywi
 TODO: put the connection string somewhere else.
 TODO: add PLSQL function that creates a zeroed out double precision array in some specified row
 TODO: figure out how to use RETURNING with clojure.java.jdbc"
-  (:require [clojure.java.jdbc :as sql]))
+  (:require [clojure.java.jdbc :as sql] 
+            [clojure.edn :as edn]))
 
 (def sql-settings "postgresql://linus:valkmon@localhost:5432/nebulosity")
 
-(defn create-db []
-  (sql/db-do-commands sql-settings "create table vectorspace ( vector_id serial primary key, vector double precision []);"))
+(defn create-task-db 
+  "creates a table for storing tasks as edn blobs"
+  []
+  (sql/db-do-commands sql-settings 
+                      (sql/create-table-ddl 
+                       :tasks 
+                       [:id :serial :primary :key] 
+                       [:ednblob :text :not :null])))
+(create-task-db)
+
+
+
+(defn store-task [task]
+  ;;validate the task!
+  (sql/insert! sql-settings :tasks {:ednblob (with-out-str (prn task))}))
+
+(defn read-task 
+  "reads and deserializes a task data structure given its database id"
+  [id]
+  (-> (sql/query sql-settings 
+                 (str 
+                  "SELECT tasks.ednblob FROM tasks WHERE tasks.id = " id))
+      first
+      :ednblob
+      edn/read-string))
+
+(comment (sql/insert! sql-settings :tasks {:ednblob (with-out-str (prn {:text "jello"}))}))
+(comment (read-task 1))
+
+(defn create-vector-db 
+  "creates a table for string vectors, auto-increasing ID -> Double[] vector"
+  []
+  (sql/db-do-commands sql-settings "CREATE TABLE vectorspace ( vector_id SERIAL PRIMARY KEY, vector DOUBLE PRECISION []);"))
 
 (defn new-vector 
   "takes a double vector, length must be 1000.
