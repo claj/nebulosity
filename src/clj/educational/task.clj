@@ -1,10 +1,14 @@
 (ns educational.task
-  "a task description"
+  "a task description
+
+TODO: connect the vector things to persistence layer
+TODO: add some gui for testing out the various tasks and create data as different students"
   (:use [clojure.data.generators :only [reservoir-sample]]))
 
 (def key-size 12)
+(def vector-size 1000)
 
-(def reservoir (apply vector-of :long (range 1000)))
+(def reservoir (apply vector-of :long (range vector-size)))
 
 (defn generate-key 
   "generate a random key"
@@ -14,7 +18,7 @@
 (defn empty-vector 
   "generate a 1000 double vector, all zeroes"
   []
-  (apply vector-of :double (repeat 1000 (double 0))))
+  (apply vector-of :double (repeat vector-size (double 0))))
 
 ;;TODO: transient vector operations.
 ;;TODO: atomic vectors
