@@ -1,12 +1,17 @@
 (ns educational.task
   "a task description
 
-TODO: connect the vector things to persistence layer
-TODO: add some gui for testing out the various tasks and create data as different students
-TODO: transient vector operations
+TODO: add vector projection things. incanter? matrix.core?
+
 TODO: vectors and students as refs
-TODO: create a Type vector that can be serialized to edn/read cleverly by postgresql"
-  (:use [clojure.data.generators :only [reservoir-sample]]))
+TODO: add some gui for testing out the various tasks and create data as different students
+TODO: create a Type vector that can be serialized to edn/read cleverly by postgresql
+TODO: prismatic/schema for tasks and students
+
+TODO: transient vector operations
+TODO: connect the vector things to persistence layer"
+  (:use [clojure.data.generators :only [reservoir-sample]])
+  (:require [schema.core :as schema]))
 
 (def key-size 12)
 (def vector-size 1000)
@@ -18,7 +23,7 @@ TODO: create a Type vector that can be serialized to edn/read cleverly by postgr
   (reservoir-sample key-size reservoir))
 
 (defn empty-vector 
-  "generate a 1000 double vector, all zeroes"
+  "generate a double vector of vector-size length, all zeroes"
   []
   (apply vector-of :double (repeat vector-size (double 0))))
 
