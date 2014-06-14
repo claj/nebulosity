@@ -53,6 +53,7 @@
                  [ring/ring "1.2.1"]
                  [fogus/ring-edn "0.2.0"]
                  [om "0.5.3"]
+                 [om-sync "0.1.1"]
 
                  [bytebuffer "0.2.0"]
                  [nio "1.0.2"]
