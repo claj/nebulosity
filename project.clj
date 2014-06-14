@@ -5,8 +5,8 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :source-paths ["src/clj" "src/cljs"]
   :java-source-paths ["src/jvm"]
-  :resource-paths ["multilang"]
-  :aot :all
+  :resource-paths ["multilang" "resources"]
+;;  :aot :all
 
   :jvm-opts ^:replace ["-Xmx1g" "-server"]
 
@@ -80,13 +80,7 @@
 
                  [postgresql/postgresql "9.1-901.jdbc4"]
                  [prismatic/schema "0.2.2"]
-
                  [incanter/incanter-core "1.5.5"]
-
                  [com.datomic/datomic-free "0.9.4766.16"]]
-
-
   :plugins [[lein-cljsbuild "1.0.2"]]
-
-  :source-paths ["/src/clj" "src/cljs"]
-  :resource-paths ["resources"])
+)

@@ -88,3 +88,12 @@ we can write it back to the previous task"
           :successful-previous-task 
           :unsuccessful-previous-task)) 
    (:key previous-task)))
+
+
+(defn get-next-task 
+  "given a student state, find and return a new suitable task"
+  [student-state]
+
+) 
+
+
