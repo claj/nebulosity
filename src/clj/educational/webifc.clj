@@ -87,7 +87,7 @@ Party!"
                        :answer/correct false}])))
 
 (install-simple-data "what is 1+1?" "2" "√3" "1" "π")
-(install-simple-data "when is sin(x) = x" "0" "π" "2⋅π⋅n, n ∈ ℕ" "2x")
+(install-simple-data "for which x is sin(x) = x?" "0" "π" "2⋅π⋅n, n ∈ ℕ" "2x")
 
 (comment (d/q '[:find ?e ?q  :where [?e :task/query ?q]] (d/db conn))) ;;ok
 
@@ -128,6 +128,7 @@ Party!"
 
 (defroutes routes
   (GET "/" [] (index))
+  ;;we don't want a "yay! correct" UI, it should be silent, but for debugging...
   (GET "/answer/:aid" [aid] (str (spy :info (:answer/correct (d/entity (d/db conn) (Long/parseLong aid))))))
   (GET "/realrt" [] (let [db (d/db conn)] 
                       (tasktemplate (d/entity db (find-one-task-id db)))))
