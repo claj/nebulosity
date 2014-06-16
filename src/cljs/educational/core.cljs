@@ -1,4 +1,5 @@
 (ns educational.core
+  "from advanced om-tutorial"
   (:require [cljs.reader :as reader]
             [goog.events :as events]
             [goog.dom :as gdom]
@@ -9,7 +10,6 @@
            [goog.events EventType]))
 
 (enable-console-print!)
-
 (println "Hello world!")
 
 (def ^:private meths
@@ -19,15 +19,15 @@
    :delete "DELETE"})
 
 (defn edn-xhr 
-"communicate with server through ajax-thing"
-[{:keys [method url data on-complete]}]
+  "communicate with server through closure ajax"
+  [{:keys [method url data on-complete]}]
   (let [xhr (XhrIo.)]
     (events/listen xhr goog.net.EventType.COMPLETE
-      (fn [e]
-        (on-complete (reader/read-string (.getResponseText xhr)))))
+                   (fn [e]
+                     (on-complete (reader/read-string (.getResponseText xhr)))))
     (. xhr
-      (send url (meths method) (when data (pr-str data))
-        #js {"Content-Type" "application/edn"}))))
+       (send url (meths method) (when data (pr-str data))
+             #js {"Content-Type" "application/edn"}))))
 
 
 (def app-state (atom {:classes []}))
@@ -55,20 +55,20 @@
     (render-state [_ {:keys [editing]}]
       (let [text (get data edit-key)]
         (dom/li nil
-          (dom/span #js {:style (display (not editing))} text)
-          (dom/input
-            #js {:style (display editing)
-                 :value text
-                 :onChange #(handle-change % data edit-key owner)
-                 :onKeyPress #(when (== (.-keyCode %) 13)
-                                (end-edit text owner on-edit))
-                 :onBlur (fn [e]
-                           (when (om/get-state owner :editing)
-                             (end-edit text owner on-edit)))})
-          (dom/button
-            #js {:style (display (not editing))
-                 :onClick #(om/set-state! owner :editing true)}
-            "Edit"))))))
+                (dom/span #js {:style (display (not editing))} text)
+                (dom/input
+                 #js {:style (display editing)
+                      :value text
+                      :onChange #(handle-change % data edit-key owner)
+                      :onKeyPress #(when (== (.-keyCode %) 13)
+                                     (end-edit text owner on-edit))
+                      :onBlur (fn [e]
+                                (when (om/get-state owner :editing)
+                                  (end-edit text owner on-edit)))})
+                (dom/button
+                 #js {:style (display (not editing))
+                      :onClick #(om/set-state! owner :editing true)}
+                 "Edit"))))))
 
 (defn on-edit [id title]
   (edn-xhr {:method :put
@@ -81,21 +81,21 @@
     om/IWillMount
     (will-mount [_]
       (edn-xhr
-        {:method :get
-         :url "classes"
-         :on-complete #(om/transact! app :classes (fn [_] %))}))
+       {:method :get
+        :url "classes"
+        :on-complete #(om/transact! app :classes (fn [_] %))}))
     om/IRender
     (render [_]
       (dom/div #js {:id "classes"}
-        (dom/h2 nil "Classes")
-        (apply dom/ul nil
-          (map
-            (fn [class]
-              (let [id (:class/id class)]
-                (om/build editable class
-                  {:opts {:edit-key :class/title
-                          :on-edit #(on-edit id %)}})))
-            (:classes app)))))))
+               (dom/h2 nil "Classes")
+               (apply dom/ul nil
+                      (map
+                       (fn [class]
+                         (let [id (:class/id class)]
+                           (om/build editable class
+                                     {:opts {:edit-key :class/title
+                                             :on-edit #(on-edit id %)}})))
+                       (:classes app)))))))
 
 (om/root classes-view app-state
-  {:target (gdom/getElement "classes")})
+         {:target (gdom/getElement "classes")})
