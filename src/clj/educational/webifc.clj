@@ -34,6 +34,7 @@ TODO: ring-mock for testing the web responses
                       :db/valueType :db.type/ref
                       :db/cardinality :db.cardinality/many
                       :db/doc "points to one or many answers, correct or not"
+                      :db/isComponent true
                       :db.install/_attribute :db.part/db}
 
                      {:db/id (d/tempid :db.part/db)
@@ -129,6 +130,8 @@ Party!"
 (defroutes routes
   (GET "/" [] (index))
   ;;we don't want a "yay! correct" UI, it should be silent, but for debugging...
+  (GET "/task" [] (let [db (d/db conn)] 
+                    (pr-str (d/touch (d/entity db (find-one-task-id db))))))
   (GET "/answer/:aid" [aid] (str (spy :info (:answer/correct (d/entity (d/db conn) (Long/parseLong aid))))))
   (GET "/realrt" [] (let [db (d/db conn)] 
                       (tasktemplate (d/entity db (find-one-task-id db)))))

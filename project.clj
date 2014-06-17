@@ -15,6 +15,7 @@
                                    :output-dir "resources/public/js/out"
                                    :optimizations :none
                                    :source-map true}}]}
+
   :jvm-opts ^:replace ["-Xmx1g" "-server"]
 
   :dependencies [[org.clojure/clojure "1.6.0"]
@@ -72,13 +73,9 @@
                  [reduce-fsm "0.1.0"]
                  [zookeeper-clj "0.9.1"]
                  [avout "0.5.3"]
-
                  [clj-net-pcap "1.6.0"]
-
                  [com.cemerick/pomegranate "0.2.0"]
-
                  [criterium "0.4.2"]
-
                  [org.flatland/useful "0.11.1"]
 
                  [cc.qbits/nippy-lz4 "0.1.0"]

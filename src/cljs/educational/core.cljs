@@ -6,7 +6,7 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true])
   (:import [goog.net XhrIo]
-           goog.net.EventType
+           goog.net.EventType ;; fully qualified because namespace clash
            [goog.events EventType]))
 
 (enable-console-print!)
@@ -28,3 +28,41 @@
     (. xhr
        (send url (meths method) (when data (pr-str data))
              #js {"Content-Type" "application/edn"}))))
+
+;;want to send a 
+
+(def app-state
+  (atom {:classes []
+         :query nil}))
+
+(defn display [show]
+  (if show
+    #js {}
+    #js {:display "none"}))
+
+(defn on-answer [id answer]
+  (edn-xhr
+   {:method :get
+    :url (str "/realrt")
+    :on-complete (fn [res] (println "answer-resp:" res))}))
+
+(defn task-view [app owner]
+  (reify 
+    om/IWillMount
+    (will-mount [_]
+      (edn-xhr 
+       {:method :get 
+        :url "task" 
+        :on-complete #(om/transact! app :query (fn [_] %))}))
+    om/IRender
+    (render [_]
+      (dom/div #js {:id "classes"}
+               (dom/h2 nil (get-in app [:query :task/query]))
+               (apply dom/ul nil
+                      (map (fn [answer]
+                             (dom/li nil (str (:answer/text answer))))
+                           (get-in app [:query :task/answer])))))))
+
+(om/root task-view app-state
+  {:target (gdom/getElement "classes")})
+
