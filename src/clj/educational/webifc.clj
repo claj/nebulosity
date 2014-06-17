@@ -13,8 +13,7 @@ TODO: ring-mock for testing the web responses
             [datomic.api :as d]
             [net.cgrand.enlive-html :as html]
             [clojure.java.io :as io]
-            [taoensso.timbre :as timbre :refer [info warn error spy]]
-            ))
+            [taoensso.timbre :as timbre :refer [info warn error spy]]))
 
 (def uri "datomic:mem://om_async")
 (d/delete-database uri)
@@ -50,6 +49,30 @@ TODO: ring-mock for testing the web responses
                       :db/cardinality :db.cardinality/one
                       :db/doc "is the answer correct or not?"
                       :db.install/_attribute :db.part/db}
+
+                     ;;user
+
+                     {:db/id (d/tempid :db.part/db)
+                      :db/ident :user/name
+                      :db/valueType :db.type/string
+                      :db/cardinality :db.cardinality/one
+                      :db/doc "name of the user"
+                      :db.install/_attribute :db.part/db}
+
+                     {:db/id (d/tempid :db.part/db)
+                      :db/ident :user/current-task
+                      :db/valueType :db.type/ref
+                      :db/cardinality :db.cardinality/one
+                      :db/doc "the current task of the user"
+                      :db.install/_attribute :db.part/db}
+
+                     {:db/id (d/tempid :db.part/db)
+                      :db/ident :user/solved
+                      :db/valueType :db.type/ref
+                      :db/cardinality :db.cardinality/many
+                      :db/doc "already solved tasks"
+                      :db.install/_attribute :db.part/db}
+
                      ])
 
 (d/transact conn minimal-schema)
@@ -87,15 +110,46 @@ Party!"
                        :answer/text wrong-answer3
                        :answer/correct false}])))
 
+
 (install-simple-data "what is 1+1?" "2" "√3" "1" "π")
 (install-simple-data "for which x is sin(x) = x?" "0" "π" "2⋅π⋅n, n ∈ ℕ" "2x")
+(install-simple-data "what is 10*10?" "100" "20" "0" "1000")
+(install-simple-data "what is 10*2+2" "22" "220" "1022" "54")
 
-(comment (d/q '[:find ?e ?q  :where [?e :task/query ?q]] (d/db conn))) ;;ok
+(defn create-user [name]
+  (d/transact conn [{:db/id (d/tempid :db.part/user)
+                     :user/name name}]))
+
+(create-user "Linus")
+
+(defn set-task [username taskid]
+  (let [userid (ffirst (d/q '[:find ?id :in $ ?name :where [?id :user/name ?name]] (d/db conn) username))]
+    (d/transact conn [{:db/id userid :user/current-task taskid}])))
+
+
+
+                                        ;(d/q '[:find ?text :where [?userid :user/current-task ?tid] [?tid :task/query ?text]] (d/db conn))
+
+(defn username-to-userid [name db]
+  (ffirst  (d/q '[:find ?uid :in $ ?name :where [?uid :user/name ?name]] db name)))
+
+
+                                        ;(comment (d/q '[:find ?e ?q  :where [?e :task/query ?q]] (d/db conn))) ;;ok
 
 (defn find-one-task-id 
   "finds a quite random task id"
   [db]
+
   (ffirst (d/q '[:find ?e :where [?e :task/query]] db)))
+
+
+(set-task "Linus" ( find-one-task-id (d/db conn)))
+
+(defn really-random-task-id [db]
+  (first (rand-nth (vec (d/q '[:find ?id :where [?id :task/query]] db ))))
+  )
+
+(comment (really-random-task-id (d/db conn)))
 
 ;; example of a task datomic schema (although not realized until we ask for the values
 (comment {:query "what is 0+1?"
@@ -121,26 +175,45 @@ Party!"
   [:title]  (html/content (str "rendering " (:db/id task)))
   [:#query] (html/content (str (:task/query task)))
   [:#answers :li] (html/clone-for 
-                         [answer-map (:task/answer task)]
-                         [:a] (html/do->
-                               (html/content (:answer/text answer-map))
-                               (html/remove-attr :id)
-                               (html/set-attr :href (str "/answer/" (:db/id answer-map))))))
+                   [answer-map (:task/answer task)]
+                   [:a] (html/do->
+                         (html/content (:answer/text answer-map))
+                         (html/remove-attr :id)
+                         (html/set-attr :href (str "/answer/" (:db/id answer-map))))))
 
 (defroutes routes
   (GET "/" [] (index))
-  ;;we don't want a "yay! correct" UI, it should be silent, but for debugging...
+
   (GET "/task" [] (let [db (d/db conn)] 
-                    (pr-str (d/touch (d/entity db (find-one-task-id db))))))
-  (GET "/answer/:aid" [aid] (str (spy :info (:answer/correct (d/entity (d/db conn) (Long/parseLong aid))))))
-  (GET "/realrt" [] (let [db (d/db conn)] 
-                      (tasktemplate (d/entity db (find-one-task-id db)))))
+                    (pr-str 
+                     (d/touch 
+                      (d/entity db 
+                                (find-one-task-id db))))))
+
+  (GET "/next/:user/:answer-id" 
+       [user answer-id] 
+       (let [db (d/db conn)
+             answer-id (Long/parseLong answer-id)
+             correct-answer? (spy :info (:answer/corrent (d/entity db answer-id)))
+             next-task (really-random-task-id db)]
+         (spy :info (set-task user next-task))
+         (spy :info (pr-str (d/touch (d/entity db next-task))))))
+
+  (GET "/taskforuser/:user" 
+       [user] 
+       (spy :info 
+            (let [db (d/db conn)
+                  user-id (spy :info (username-to-userid (spy :info user) db))
+                  current-task-entity (spy :info (:user/current-task (d/entity db user-id)))] 
+              (pr-str (d/touch current-task-entity)))))
+
   (GET "/tasknumber/:task-id" [task-id] (let [tid (Long/parseLong task-id)]
                                           (info "trying to load task number " task-id)
                                           (assert (number? tid))
-                                          (render-task 
-                                           (read-task
+                                          (tasktemplate 
+                                           (d/entity
                                             (d/db conn) (Long/parseLong tid)))))
+
   (route/files "/" {:root "resources/public"}))
 
 (def app

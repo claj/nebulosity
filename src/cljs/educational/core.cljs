@@ -10,7 +10,6 @@
            [goog.events EventType]))
 
 (enable-console-print!)
-(println "Hello world!")
 
 (def ^:private meths
   {:get "GET"
@@ -29,22 +28,17 @@
        (send url (meths method) (when data (pr-str data))
              #js {"Content-Type" "application/edn"}))))
 
-;;want to send a 
-
 (def app-state
-  (atom {:classes []
-         :query nil}))
+  (atom {:query nil
+         :user "Linus"}))
 
-(defn display [show]
-  (if show
-    #js {}
-    #js {:display "none"}))
-
-(defn on-answer [id answer]
-  (edn-xhr
-   {:method :get
-    :url (str "/realrt")
-    :on-complete (fn [res] (println "answer-resp:" res))}))
+(defn say-what [app id] 
+  (let [url (str "/next/" (:user @app) "/" id)]
+    (println url)
+    (edn-xhr
+     {:method :get
+      :url url
+      :on-complete #(om/transact! app :query (fn [_] %))})))
 
 (defn task-view [app owner]
   (reify 
@@ -52,7 +46,7 @@
     (will-mount [_]
       (edn-xhr 
        {:method :get 
-        :url "task" 
+        :url (str "/taskforuser/" (:user app)) 
         :on-complete #(om/transact! app :query (fn [_] %))}))
     om/IRender
     (render [_]
@@ -60,7 +54,7 @@
                (dom/h2 nil (get-in app [:query :task/query]))
                (apply dom/ul nil
                       (map (fn [answer]
-                             (dom/li nil (str (:answer/text answer))))
+                             (dom/li #js {:onClick #(say-what app (:db/id answer))} (str (:answer/text answer))))
                            (get-in app [:query :task/answer])))))))
 
 (om/root task-view app-state
