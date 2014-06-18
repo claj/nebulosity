@@ -10,6 +10,7 @@
            [goog.events EventType]))
 
 (enable-console-print!)
+(println "hello world")
 
 (def ^:private meths
   {:get "GET"
@@ -40,7 +41,35 @@
       :url url
       :on-complete #(om/transact! app :query (fn [_] %))})))
 
-(defn task-view [app owner]
+(defn set-mouse-over 
+  "sets a state of one of the answers to be rendered as special"
+  [app id state]
+  (om/transact! app 
+                (fn [app] 
+                  (update-in 
+                   app 
+                   [:query :task/answer]
+                   #(reduce 
+                     (fn [result new] 
+                       (conj result 
+                             (if (= id new) 
+                               (assoc new :mouseover state) 
+                               new))) 
+                     #{} %)))))
+
+(defn conditional-style 
+  "renders different styles depending on the mouseover flag, set "
+  [mouseover?]
+  #js {:backgroundColor (if mouseover? "#ffc" "#fff")
+       :borderStyle (if mouseover? "double" "solid")
+       :width "40%"})
+
+
+(comment (defn find-current-elements []
+           (println (. js/document querySelectorAll ":hover"))))
+
+(defn
+  task-view [app owner]
   (reify 
     om/IWillMount
     (will-mount [_]
@@ -50,13 +79,20 @@
         :on-complete #(om/transact! app :query (fn [_] %))}))
     om/IRender
     (render [_]
-      (dom/div #js {:id "classes"}
+      (dom/div #js {:id "task" }
                (dom/h2 nil (get-in app [:query :task/query]))
+               
                (apply dom/ul nil
+                      
                       (map (fn [answer]
-                             (dom/li #js {:onClick #(say-what app (:db/id answer))} (str (:answer/text answer))))
+                             (println answer)
+                             (dom/li #js {:style (conditional-style (:mouseover answer))
+                                          :onClick #(say-what app (:db/id answer))
+                                          :onMouseOver #(set-mouse-over app answer true)
+                                          :onMouseOut #(set-mouse-over app answer false)} 
+                                     (str (:answer/text answer))))
                            (get-in app [:query :task/answer])))))))
 
 (om/root task-view app-state
-  {:target (gdom/getElement "classes")})
+         {:target (gdom/getElement "task")})
 

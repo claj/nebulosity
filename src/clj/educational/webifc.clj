@@ -1,8 +1,10 @@
 (ns educational.webifc
-  "web interface for students etc
+  "web interface
 TODO: receive answer and update students things depending on result
 TODO: login, logout
 TODO: ring-mock for testing the web responses
+TODO: pre-store potential new tasks
+TODO: some layout, so it's not as bad
 "
   (:require [ring.util.response :refer [file-response]]
             [ring.adapter.jetty :refer [run-jetty]]
@@ -14,6 +16,14 @@ TODO: ring-mock for testing the web responses
             [net.cgrand.enlive-html :as html]
             [clojure.java.io :as io]
             [taoensso.timbre :as timbre :refer [info warn error spy]]))
+
+;; example of a task datomic schema (although not realized until we ask for the values
+(comment {:query "what is 0+1?"
+          :type :fourfield
+          :answers #{{:answer/text "1" :answer/correct true}
+                     {:answer/text "2" :answer/correct false}
+                     {:answer/text "0" :answer/correct false}
+                     {:answer/text "10" :answer/correct false}}})
 
 (def uri "datomic:mem://om_async")
 (d/delete-database uri)
@@ -115,6 +125,12 @@ Party!"
 (install-simple-data "for which x is sin(x) = x?" "0" "π" "2⋅π⋅n, n ∈ ℕ" "2x")
 (install-simple-data "what is 10*10?" "100" "20" "0" "1000")
 (install-simple-data "what is 10*2+2" "22" "220" "1022" "54")
+(install-simple-data "sin(0)=" "0" "-1" "1" "not defined")
+(install-simple-data "cos(0)=" "1" "0" "-1" "π")
+
+
+
+;;so how to make a graph out of this?
 
 (defn create-user [name]
   (d/transact conn [{:db/id (d/tempid :db.part/user)
@@ -126,43 +142,33 @@ Party!"
   (let [userid (ffirst (d/q '[:find ?id :in $ ?name :where [?id :user/name ?name]] (d/db conn) username))]
     (d/transact conn [{:db/id userid :user/current-task taskid}])))
 
-
-
-                                        ;(d/q '[:find ?text :where [?userid :user/current-task ?tid] [?tid :task/query ?text]] (d/db conn))
+;;(d/q '[:find ?text :where [?userid :user/current-task ?tid] [?tid :task/query ?text]] (d/db conn))
 
 (defn username-to-userid [name db]
   (ffirst  (d/q '[:find ?uid :in $ ?name :where [?uid :user/name ?name]] db name)))
 
 
-                                        ;(comment (d/q '[:find ?e ?q  :where [?e :task/query ?q]] (d/db conn))) ;;ok
+;;(comment (d/q '[:find ?e ?q  :where [?e :task/query ?q]] (d/db conn))) ;;ok
 
 (defn find-one-task-id 
   "finds a quite random task id"
   [db]
-
   (ffirst (d/q '[:find ?e :where [?e :task/query]] db)))
+
 
 
 (set-task "Linus" ( find-one-task-id (d/db conn)))
 
+
+
 (defn really-random-task-id [db]
-  (first (rand-nth (vec (d/q '[:find ?id :where [?id :task/query]] db ))))
-  )
+  (first 
+   (rand-nth 
+    (vec 
+     (d/q '[:find ?id :where [?id :task/query]] db)))))
 
-(comment (really-random-task-id (d/db conn)))
 
-;; example of a task datomic schema (although not realized until we ask for the values
-(comment {:query "what is 0+1?"
-          :type :fourfield
-          :answers #{{:answer/text "1" :answer/correct true}
-                     {:answer/text "2" :answer/correct false}
-                     {:answer/text "0" :answer/correct false}
-                     {:answer/text "10" :answer/correct false}}})
 
-(defn index
-  "from om-async tut"
-  []
-  (file-response "public/html/index.html" {:root "resources"}))
 
 (defn generate-response 
   "from om-async tut"
@@ -171,6 +177,9 @@ Party!"
    :headers {"Content-Type" "application/edn"}
    :body (pr-str data)})
 
+
+
+;;for rendering on server (without react)
 (html/deftemplate tasktemplate (io/reader "templates/query.html") [task]
   [:title]  (html/content (str "rendering " (:db/id task)))
   [:#query] (html/content (str (:task/query task)))
@@ -181,15 +190,15 @@ Party!"
                          (html/remove-attr :id)
                          (html/set-attr :href (str "/answer/" (:db/id answer-map))))))
 
-(defroutes routes
-  (GET "/" [] (index))
 
+
+(defroutes routes
+  (GET "/" [] (file-response "public/html/index.html" {:root "resources"}))
   (GET "/task" [] (let [db (d/db conn)] 
                     (pr-str 
                      (d/touch 
                       (d/entity db 
                                 (find-one-task-id db))))))
-
   (GET "/next/:user/:answer-id" 
        [user answer-id] 
        (let [db (d/db conn)
@@ -198,7 +207,6 @@ Party!"
              next-task (really-random-task-id db)]
          (spy :info (set-task user next-task))
          (spy :info (pr-str (d/touch (d/entity db next-task))))))
-
   (GET "/taskforuser/:user" 
        [user] 
        (spy :info 
@@ -215,6 +223,8 @@ Party!"
                                             (d/db conn) (Long/parseLong tid)))))
 
   (route/files "/" {:root "resources/public"}))
+
+
 
 (def app
   (-> routes
