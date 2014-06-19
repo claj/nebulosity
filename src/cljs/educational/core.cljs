@@ -68,9 +68,6 @@
        :borderStyle (if mouseover? "double" "solid")
        :width "40%"})
 
-
-
-
 (defn
   task-view [app owner]
   (reify 
@@ -84,11 +81,9 @@
     (render [_]
       (dom/div #js {:id "task" }
                (dom/h2 nil (get-in app [:query :task/query]))
-               
-               (apply dom/ul nil
-                      
+               (apply dom/ul nil                     
                       (map (fn [answer]
-                             (println answer)
+                             ;;answer is the datastructure of the answer in the datamodel
                              (dom/li #js {:style (conditional-style (:mouseover answer))
                                           :onClick #(say-what app (:db/id answer))
                                           :onMouseOver #(set-mouse-over app answer true)
