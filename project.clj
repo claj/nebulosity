@@ -45,7 +45,6 @@
                  [org.clojure/tools.trace "0.7.6"]
                  [org.clojure/tools.macro "0.1.2"]
 
-                 ;;[org.clojure/java.jmx "0.2.0"]
                  [org.clojure/java.data "0.1.1"]
                  [org.clojure/java.jdbc "0.3.3"]
 
@@ -62,25 +61,9 @@
                  [om "0.6.4"]
                  [om-sync "0.1.1"]
 
-;;                 [bytebuffer "0.2.0"]
-;;                 [nio "1.0.2"]
-;;                 [gloss "0.2.2"]
-;;                 [aleph "0.3.3-SNAPSHOT"]
-
-;;                 [cc.artifice/clj-ml "0.5.0-SNAPSHOT"]
-
-;;                 [reduce-fsm "0.1.1"]
-;;                 [zookeeper-clj "0.9.1"]
-;;                 [avout "0.5.4"]
-;;                 [clj-net-pcap "1.6.0"]
                  [com.cemerick/pomegranate "0.3.0"]
                  [criterium "0.4.3"]
                  [org.flatland/useful "0.11.2"]
-
-;;                 [cc.qbits/nippy-lz4 "0.1.0"]
-;;                 [com.taoensso/nippy "2.6.0-RC1"]
-
-;;                 [clojurewerkz/meltdown "1.0.0-beta8"]
 
                  [postgresql/postgresql "9.1-901.jdbc4"]
                  [prismatic/schema "0.2.2"]
