@@ -4,8 +4,7 @@ TODO: receive answer and update students things depending on result
 TODO: login, logout
 TODO: ring-mock for testing the web responses
 TODO: pre-store potential new tasks
-TODO: some layout, so it's not as bad
-"
+TODO: some layout, so it's not as bad"
   (:require [ring.util.response :refer [file-response]]
             [ring.adapter.jetty :refer [run-jetty]]
             [ring.middleware.edn :refer [wrap-edn-params]]
@@ -15,7 +14,9 @@ TODO: some layout, so it's not as bad
             [datomic.api :as d]
             [net.cgrand.enlive-html :as html]
             [clojure.java.io :as io]
-            [taoensso.timbre :as timbre :refer [info warn error spy]]))
+            [taoensso.timbre :as timbre :refer [info warn error spy]])
+ (:gen-class)
+)
 
 ;; example of a task datomic schema (although not realized until we ask for the values
 (comment {:query "what is 0+1?"
@@ -230,5 +231,9 @@ Party!"
   (-> routes
       wrap-edn-params))
 
+(def port 8080)
+
 (defonce server
-  (run-jetty #'app {:port 8080 :join? false}))
+  (run-jetty #'app {:port port :join? false}))
+
+(defn -main [& args] (println "webserver already started at " port))

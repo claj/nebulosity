@@ -41,9 +41,13 @@
       :url url
       :on-complete #(om/transact! app :query (fn [_] %))})))
 
+(defn find-current-elements []
+  (println (. js/document querySelectorAll ":hover")))
+
 (defn set-mouse-over 
   "sets a state of one of the answers to be rendered as special"
   [app id state]
+  (find-current-elements)
   (om/transact! app 
                 (fn [app] 
                   (update-in 
@@ -65,8 +69,7 @@
        :width "40%"})
 
 
-(comment (defn find-current-elements []
-           (println (. js/document querySelectorAll ":hover"))))
+
 
 (defn
   task-view [app owner]
