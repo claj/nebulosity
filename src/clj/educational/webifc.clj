@@ -1,10 +1,11 @@
 (ns educational.webifc
   "web interface
-TODO: receive answer and update students things depending on result
 TODO: login, logout
-TODO: ring-mock for testing the web responses
 TODO: pre-store potential new tasks
-TODO: some layout, so it's not as bad"
+TODO: some layout, so it's not as bad
+TODO: some naive ordering of tasks
+TODO: some more complicated ordering of tasks
+"
   (:require [ring.util.response :refer [file-response]]
 
             [ring.middleware.edn :refer [wrap-edn-params]]

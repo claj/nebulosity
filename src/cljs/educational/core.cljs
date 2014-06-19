@@ -1,16 +1,26 @@
 (ns educational.core
-  "from advanced om-tutorial"
+  "a web application rendering the datastructures it fetches dynamically
+from the webserver
+
+TODO: add support for prefetching next questions (whatever outcome the answer is)
+ - this make it possible to show next task at once, and fetching the new possible
+tasks in the background.
+TODO: expand the above prefetch to as many tasks as nescessary given the bandwidth
+TODO: make it possible to change state :user
+"
   (:require [cljs.reader :as reader]
             [goog.events :as events]
             [goog.dom :as gdom]
             [om.core :as om :include-macros true]
-            [om.dom :as dom :include-macros true])
+            [om.dom :as dom :include-macros true]
+            [educational.timbre-like :as timbre-like :include-macros true])
   (:import [goog.net XhrIo]
            goog.net.EventType ;; fully qualified because namespace clash
            [goog.events EventType]))
 
 (enable-console-print!)
-(println "hello world")
+;;(println "hello world")
+;;(timbre-like/spy "sum" (+ 1 1))
 
 (def ^:private meths
   {:get "GET"
@@ -35,14 +45,14 @@
 
 (defn say-what [app id] 
   (let [url (str "/next/" (:user @app) "/" id)]
-    (println url)
     (edn-xhr
      {:method :get
       :url url
       :on-complete #(om/transact! app :query (fn [_] %))})))
 
 (defn find-current-elements []
-  (println (. js/document querySelectorAll ":hover")))
+  ;;(println (. js/document querySelectorAll ":hover"))
+  )
 
 (defn set-mouse-over 
   "sets a state of one of the answers to be rendered as special"
@@ -68,8 +78,17 @@
        :borderStyle (if mouseover? "double" "solid")
        :width "40%"})
 
+
 (defn
-  task-view [app owner]
+  task-view 
+  "idempotent function always returning a React handled 'DOM' of the datastructure in
+the app variable
+
+owner     is the backing React component
+
+must return an om component - something that implements om/IRender
+"
+[app owner]
   (reify 
     om/IWillMount
     (will-mount [_]
@@ -91,6 +110,26 @@
                                      (str (:answer/text answer))))
                            (get-in app [:query :task/answer])))))))
 
+;;establish an Om rendering loop on a specific element of the DOM
 (om/root task-view app-state
          {:target (gdom/getElement "task")})
 
+
+(defn user-view [app owner]
+  (reify 
+    om/IRender
+    (render [_]
+      (dom/div #js {:id "user"}
+               (str "user: " (:user app))))))
+
+(om/root user-view app-state
+         {:target (gdom/getElement "user")})
+
+(defn ^:export  
+  changeuser
+"can be reached from javascript console,
+educational.core.changeuser('BobbyLjungren')
+
+breaks everything..."
+[username]
+  (swap! app-state assoc :user username))

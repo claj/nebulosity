@@ -4,17 +4,27 @@ clojure code surrounded by nebolsity
 
 ## Educational
 
-trying to apply a word-space thing to maneuver students through a dense and 
-by nescissity not very well curated curriculum. Shoehorning it all into
-PostgreSQL (but kept in memory during usage!)
+Aiming to be a small web application, with machine learning methods for selecting
+the best possible tasks for the student. It could be seen as a min-max-tree selection
+where one hopefully could learn a bit about other students, and hopefully even
+use students similar to this one to get the best prognostisation.
 
-Aiming to be a small web application.
+currently it runs an in-memory datomic database for everything.
+
+start application with
+
+      lein run
+
+which starts the educational.main application.
+
+now browse to http://localhost:8080/
 
 run tests with
 
     lein midje educational.webifc-test 
 
 but the :autotest option is somehow broken.
+
 
 
 ## License

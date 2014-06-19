@@ -75,4 +75,4 @@
                  [incanter/incanter-core "1.5.5"]
                  [com.datomic/datomic-free "0.9.4766.16"]
                  [com.taoensso/timbre "3.2.1"]]
-  :plugins [[lein-cljsbuild "1.0.2"]])
+  :plugins [[lein-cljsbuild "1.0.3"]])
