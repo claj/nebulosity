@@ -6,17 +6,16 @@ TODO: ring-mock for testing the web responses
 TODO: pre-store potential new tasks
 TODO: some layout, so it's not as bad"
   (:require [ring.util.response :refer [file-response]]
-            [ring.adapter.jetty :refer [run-jetty]]
+
             [ring.middleware.edn :refer [wrap-edn-params]]
             [compojure.core :refer [defroutes GET PUT]]
             [compojure.route :as route]
             [compojure.handler :as handler]
-            [datomic.api :as d]
+            [datomic.api :as d :refer [db q entity]]
             [net.cgrand.enlive-html :as html]
             [clojure.java.io :as io]
             [taoensso.timbre :as timbre :refer [info warn error spy]])
- (:gen-class)
-)
+ (:gen-class))
 
 ;; example of a task datomic schema (although not realized until we ask for the values
 (comment {:query "what is 0+1?"
@@ -37,6 +36,14 @@ TODO: some layout, so it's not as bad"
                       :db/valueType :db.type/string
                       :db/cardinality :db.cardinality/one
                       :db/doc "a query, like 'what is 1+1?'"
+                      :db.install/_attribute :db.part/db}
+
+                     {:db/id (d/tempid :db.part/db)
+                      :db/ident :task/type
+                      :db/valueType :db.type/ref
+                      :db/cardinality :db.cardinality/one
+                      :db/doc "type of task, :tasktype/fourfield and others"
+                      :db/isComponent true
                       :db.install/_attribute :db.part/db}
 
                      {:db/id (d/tempid :db.part/db)
@@ -129,10 +136,7 @@ Party!"
 (install-simple-data "sin(0)=" "0" "-1" "1" "not defined")
 (install-simple-data "cos(0)=" "1" "0" "-1" "π")
 
-
-
 ;;so how to make a graph out of this?
-
 (defn create-user [name]
   (d/transact conn [{:db/id (d/tempid :db.part/user)
                      :user/name name}]))
@@ -143,24 +147,20 @@ Party!"
   (let [userid (ffirst (d/q '[:find ?id :in $ ?name :where [?id :user/name ?name]] (d/db conn) username))]
     (d/transact conn [{:db/id userid :user/current-task taskid}])))
 
-;;(d/q '[:find ?text :where [?userid :user/current-task ?tid] [?tid :task/query ?text]] (d/db conn))
+;;(q '[:find ?text :where [?userid :user/current-task ?tid] [?tid :task/query ?text]] (d/db conn))
 
 (defn username-to-userid [name db]
-  (ffirst  (d/q '[:find ?uid :in $ ?name :where [?uid :user/name ?name]] db name)))
+  (ffirst  (q '[:find ?uid :in $ ?name :where [?uid :user/name ?name]] db name)))
 
 
-;;(comment (d/q '[:find ?e ?q  :where [?e :task/query ?q]] (d/db conn))) ;;ok
+;;(comment (q '[:find ?e ?q  :where [?e :task/query ?q]] (d/db conn))) ;;ok
 
 (defn find-one-task-id 
   "finds a quite random task id"
   [db]
-  (ffirst (d/q '[:find ?e :where [?e :task/query]] db)))
+  (ffirst (q '[:find ?e :where [?e :task/query]] db)))
 
-
-
-(set-task "Linus" ( find-one-task-id (d/db conn)))
-
-
+(set-task "Linus" (find-one-task-id (d/db conn)))
 
 (defn really-random-task-id [db]
   (first 
@@ -231,9 +231,3 @@ Party!"
   (-> routes
       wrap-edn-params))
 
-(def port 8080)
-
-(defonce server
-  (run-jetty #'app {:port port :join? false}))
-
-(defn -main [& args] (println "webserver already started at " port))

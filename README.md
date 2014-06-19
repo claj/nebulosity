@@ -10,13 +10,12 @@ PostgreSQL (but kept in memory during usage!)
 
 Aiming to be a small web application.
 
-## GUI tree experiments
-inspired by
+run tests with
 
-http://ux.stackexchange.com/questions/18991/is-there-any-alternative-ui-for-tree-structure
+    lein midje educational.webifc-test 
 
-## parsing bit seqs
-with various widths and zero conditioning, hoping to get it in a better state before use
+but the :autotest option is somehow broken.
+
 
 ## License
 

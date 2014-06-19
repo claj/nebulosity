@@ -3,9 +3,11 @@
   :url "https://github.com/claj/nebulosity"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
+
   :source-paths ["src/clj" "src/cljs"]
   :java-source-paths ["src/jvm"]
   :resource-paths ["multilang" "resources"]
+  :test-paths  ["test/clj"]
 
   :main educational.webifc
 ;;  :aot :all
@@ -17,6 +19,8 @@
                                    :output-dir "resources/public/js/out"
                                    :optimizations :none
                                    :source-map true}}]}
+
+  :profiles {:dev {:plugins [[lein-midje "3.1.1"]]}}
 
   :jvm-opts ^:replace ["-Xmx1g" "-server"]
 
@@ -60,6 +64,7 @@
                  [fogus/ring-edn "0.2.0"]
                  [om "0.6.4"]
                  [om-sync "0.1.1"]
+                 [ring-mock "0.1.5"]
 
                  [com.cemerick/pomegranate "0.3.0"]
                  [criterium "0.4.3"]
@@ -70,6 +75,4 @@
                  [incanter/incanter-core "1.5.5"]
                  [com.datomic/datomic-free "0.9.4766.16"]
                  [com.taoensso/timbre "3.2.1"]]
-  :plugins [[lein-cljsbuild "1.0.2"]]
-
-)
+  :plugins [[lein-cljsbuild "1.0.2"]])
