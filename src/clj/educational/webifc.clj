@@ -69,6 +69,14 @@ TODO: some more complicated ordering of tasks
                       :db/doc "is the answer correct or not?"
                       :db.install/_attribute :db.part/db}
 
+                     ;;task types
+
+                     {:db/id (d/tempid :db.part/db)
+                      :db/ident :task.type/fourfield}
+
+                     {:db/id (d/tempid :db.part/db)
+                      :db/ident :task.type/true-or-false}
+
                      ;;user
 
                      {:db/id (d/tempid :db.part/db)
@@ -96,7 +104,7 @@ TODO: some more complicated ordering of tasks
 
 (d/transact conn minimal-schema)
 
-(defn install-simple-data 
+(defn install-fourfield-task 
   "boiler plateau for installing a task with 
 one correct answer and three wrong ones
 
@@ -110,12 +118,12 @@ Party!"
         wrong-answer2-id  (d/tempid :db.part/user)
         wrong-answer3-id  (d/tempid :db.part/user)]
     (d/transact conn [{:db/id query-id
-                       :task/query query}
-                      {:db/id query-id
+                       :task/query query
+                       :task/type :task.type/fourfield
                        :task/answer #{correct-answer-id 
-                                      wrong-answer1-id 
-                                      wrong-answer2-id 
-                                      wrong-answer3-id}}
+                                        wrong-answer1-id 
+                                        wrong-answer2-id 
+                                        wrong-answer3-id}}
                       {:db/id correct-answer-id
                        :answer/text correct-answer
                        :answer/correct true}
@@ -130,12 +138,14 @@ Party!"
                        :answer/correct false}])))
 
 
-(install-simple-data "what is 1+1?" "2" "√3" "1" "π")
-(install-simple-data "for which x is sin(x) = x?" "0" "π" "2⋅π⋅n, n ∈ ℕ" "2x")
-(install-simple-data "what is 10*10?" "100" "20" "0" "1000")
-(install-simple-data "what is 10*2+2" "22" "220" "1022" "54")
-(install-simple-data "sin(0)=" "0" "-1" "1" "not defined")
-(install-simple-data "cos(0)=" "1" "0" "-1" "π")
+(install-fourfield-task "what is 1+1?" "2" "√3" "1" "π")
+(install-fourfield-task "for which x is sin(x) = x?" "0" "π" "2⋅π⋅n, n ∈ ℕ" "2x")
+(install-fourfield-task "what is 10*10?" "100" "20" "0" "1000")
+(install-fourfield-task "what is 10*2+2" "22" "220" "1022" "54")
+(install-fourfield-task "sin(0)=" "0" "-1" "1" "not defined")
+(install-fourfield-task "cos(0)=" "1" "0" "-1" "π")
+
+
 
 ;;so how to make a graph out of this?
 (defn create-user [name]
@@ -207,6 +217,7 @@ Party!"
              answer-id (Long/parseLong answer-id)
              correct-answer? (spy :info (:answer/corrent (d/entity db answer-id)))
              next-task (really-random-task-id db)]
+         (info "correct answer: " correct-answer?)
          (spy :info (set-task user next-task))
          (spy :info (pr-str (d/touch (d/entity db next-task))))))
   (GET "/taskforuser/:user" 
