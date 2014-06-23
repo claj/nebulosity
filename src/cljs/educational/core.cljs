@@ -19,8 +19,6 @@ TODO: make it possible to change state :user
            [goog.events EventType]))
 
 (enable-console-print!)
-;;(println "hello world")
-;;(timbre-like/spy "sum" (+ 1 1))
 
 (def ^:private meths
   {:get "GET"
@@ -50,10 +48,6 @@ TODO: make it possible to change state :user
       :url url
       :on-complete #(om/transact! app :query (fn [_] %))})))
 
-(defn find-current-elements []
-  ;;(println (. js/document querySelectorAll ":hover"))
-  )
-
 (defn set-mouse-over 
   "sets a state of one of the answers to be rendered as special"
   [app id state]
@@ -70,14 +64,6 @@ TODO: make it possible to change state :user
                                (assoc new :mouseover state) 
                                new))) 
                      #{} %)))))
-
-(defn conditional-style 
-  "renders different styles depending on the mouseover flag, set "
-  [mouseover?]
-  #js {:backgroundColor (if mouseover? "#ffc" "#fff")
-       :borderStyle (if mouseover? "double" "solid")
-       :width "40%"})
-
 
 (defn
   task-view 
@@ -102,13 +88,16 @@ must return an om component - something that implements om/IRender
                (dom/h2 nil (get-in app [:query :task/query]))
                (apply dom/ul nil                     
                       (map (fn [answer]
-                             ;;answer is the datastructure of the answer in the datamodel
-                             (dom/li #js {:style (conditional-style (:mouseover answer))
+                             (dom/li #js {:className "answer-button"
                                           :onClick #(say-what app (:db/id answer))
                                           :onMouseOver #(set-mouse-over app answer true)
                                           :onMouseOut #(set-mouse-over app answer false)} 
                                      (str (:answer/text answer))))
-                           (get-in app [:query :task/answer])))))))
+                           (get-in app [:query :task/answer])))))
+    (comment
+      om/IDidUpdate
+      (did-update [this prev-props prev-state]
+                  (println "in update!!!!")))))
 
 ;;establish an Om rendering loop on a specific element of the DOM
 (om/root task-view app-state
