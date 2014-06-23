@@ -5,9 +5,12 @@ TODO: pre-store potential new tasks
 TODO: some layout, so it's not as bad
 TODO: some naive ordering of tasks
 TODO: some more complicated ordering of tasks
+TODO: make schema for tasks as below
+TODO: add reader for edn-resource thing to put in datomic
+TODO: expand task with success and fail-vectors
+TODO: expand task with random index vectors
 "
   (:require [ring.util.response :refer [file-response]]
-
             [ring.middleware.edn :refer [wrap-edn-params]]
             [compojure.core :refer [defroutes GET PUT]]
             [compojure.route :as route]
@@ -15,6 +18,7 @@ TODO: some more complicated ordering of tasks
             [datomic.api :as d :refer [db q entity]]
             [net.cgrand.enlive-html :as html]
             [clojure.java.io :as io]
+            [clojure.tools.reader.edn :as edn]
             [taoensso.timbre :as timbre :refer [info warn error spy]])
  (:gen-class))
 
@@ -100,18 +104,19 @@ TODO: some more complicated ordering of tasks
                       :db/doc "already solved tasks"
                       :db.install/_attribute :db.part/db}
 
-                     ])
+                     {:db/id (d/tempid :db.part/db)
+                      :db/ident :user/failed
+                      :db/valueType :db.type/ref
+                      :db/cardinality :db.cardinality/many
+                      :db/doc "failed tasks"
+                      :db.install/_attribute :db.part/db}
+])
 
 (d/transact conn minimal-schema)
 
-(defn install-fourfield-task 
-  "boiler plateau for installing a task with 
-one correct answer and three wrong ones
+(defmulti install-task "install task, where first should give the type" first)
 
-please note that one can give a multi-cardinal attribute as a set of attributes.
-
-Party!"
-  [query correct-answer wrong-answer1 wrong-answer2 wrong-answer3]
+(defmethod install-task :task.type/fourfield [[type query correct-answer wrong-answer1 wrong-answer2 wrong-answer3]]
   (let [query-id (d/tempid :db.part/user) 
         correct-answer-id (d/tempid :db.part/user)
         wrong-answer1-id  (d/tempid :db.part/user)
@@ -119,7 +124,7 @@ Party!"
         wrong-answer3-id  (d/tempid :db.part/user)]
     (d/transact conn [{:db/id query-id
                        :task/query query
-                       :task/type :task.type/fourfield
+                       :task/type type
                        :task/answer #{correct-answer-id 
                                         wrong-answer1-id 
                                         wrong-answer2-id 
@@ -137,33 +142,34 @@ Party!"
                        :answer/text wrong-answer3
                        :answer/correct false}])))
 
+;;install all the tasks from the file resources/tasks.edn
 
-(install-fourfield-task "what is 1+1?" "2" "√3" "1" "π")
-(install-fourfield-task "for which x is sin(x) = x?" "0" "π" "2⋅π⋅n, n ∈ ℕ" "2x")
-(install-fourfield-task "what is 10*10?" "100" "20" "0" "1000")
-(install-fourfield-task "what is 10*2+2" "22" "220" "1022" "54")
-(install-fourfield-task "sin(0)=" "0" "-1" "1" "not defined")
-(install-fourfield-task "cos(0)=" "1" "0" "-1" "π")
+(doseq [task (edn/read-string (slurp "resources/tasks.edn"))]  
+  (install-task (spy :info task)))
 
+(defn username-to-userid [name db]
+  (ffirst (q '[:find ?uid :in $ ?name :where [?uid :user/name ?name]] db name)))
 
+(defn user-exists? [name db]
+  (not (nil? (username-to-userid name db))))
 
-;;so how to make a graph out of this?
-(defn create-user [name]
+(defn create-user [username]
+  {:pre [(not (nil? username)) 
+         (string? username) 
+         (< 2 (count username) 63) 
+         (nil? (username-to-userid username (db conn)))]}
   (d/transact conn [{:db/id (d/tempid :db.part/user)
-                     :user/name name}]))
+                     :user/name username}]))
 
 (create-user "Linus")
+(create-user "Katja")
+(create-user "Algot")
 
 (defn set-task [username taskid]
   (let [userid (ffirst (d/q '[:find ?id :in $ ?name :where [?id :user/name ?name]] (d/db conn) username))]
     (d/transact conn [{:db/id userid :user/current-task taskid}])))
 
 ;;(q '[:find ?text :where [?userid :user/current-task ?tid] [?tid :task/query ?text]] (d/db conn))
-
-(defn username-to-userid [name db]
-  (ffirst  (q '[:find ?uid :in $ ?name :where [?uid :user/name ?name]] db name)))
-
-
 ;;(comment (q '[:find ?e ?q  :where [?e :task/query ?q]] (d/db conn))) ;;ok
 
 (defn find-one-task-id 
@@ -179,17 +185,12 @@ Party!"
     (vec 
      (d/q '[:find ?id :where [?id :task/query]] db)))))
 
-
-
-
 (defn generate-response 
-  "from om-async tut"
+  "formatted as edn data"
   [data & [status]]
   {:status (or status 200)
    :headers {"Content-Type" "application/edn"}
    :body (pr-str data)})
-
-
 
 ;;for rendering on server (without react)
 (html/deftemplate tasktemplate (io/reader "templates/query.html") [task]
@@ -202,6 +203,9 @@ Party!"
                          (html/remove-attr :id)
                          (html/set-attr :href (str "/answer/" (:db/id answer-map))))))
 
+(q '[:find ?taskid :where [_ :user/solved ?taskid]] (db conn))
+
+(q '[:find ?taskid :where [_ :user/failed ?taskid]] (db conn))
 
 
 (defroutes routes
@@ -215,11 +219,19 @@ Party!"
        [user answer-id] 
        (let [db (d/db conn)
              answer-id (Long/parseLong answer-id)
-             correct-answer? (spy :info (:answer/corrent (d/entity db answer-id)))
+             user-id (username-to-userid user db)
+             correct-answer? (:answer/correct (d/entity db answer-id))
+             current-task (:user/current-task (d/entity db user-id))
              next-task (really-random-task-id db)]
          (info "correct answer: " correct-answer?)
+
+         (d/transact conn (spy :info [{:db/id user-id
+                                       (if correct-answer? 
+                                         :user/solved 
+                                         :user/failed) current-task}]))
          (spy :info (set-task user next-task))
          (spy :info (pr-str (d/touch (d/entity db next-task))))))
+
   (GET "/taskforuser/:user" 
        [user] 
        (spy :info 
@@ -235,9 +247,19 @@ Party!"
                                            (d/entity
                                             (d/db conn) (Long/parseLong tid)))))
 
+
+  (GET "/createuser/:user" [user]
+       (spy :info
+            (try
+              (create-user user)
+              (str "ok")
+              (catch AssertionError e
+                (str "could not create user: " (.getMessage e))))))
+
+  (GET "/listusers" []
+       (pr-str (q '[:find ?uid ?uname :where [?uid :user/name ?uname]] (db conn))))
+
   (route/files "/" {:root "resources/public"}))
-
-
 
 (def app
   (-> routes

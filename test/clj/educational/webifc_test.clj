@@ -20,5 +20,9 @@
       (:body (app (request :get "/js/main.js"))) => truthy)
 
 
+(future-fact "check that we can add a user")
+
+
+
 
 

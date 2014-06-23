@@ -1,12 +1,7 @@
 (ns educational.task
   "a task description
-
 TODO: vectors and students as refs
-TODO: add some gui for testing out the various tasks and create data as different students
-TODO: create a Type vector that can be serialized to edn/read cleverly by postgresql
-TODO: prismatic/schema for tasks and students
-
-TODO: transient vector operations
+TODO: transient vector operations?
 TODO: connect the vector things to persistence layer"
   (:use [clojure.data.generators :only [reservoir-sample]]
         [incanter.stats :only [cosine-similarity]])
