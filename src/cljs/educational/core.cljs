@@ -48,22 +48,6 @@ TODO: make it possible to change state :user
       :url url
       :on-complete #(om/transact! app :query (fn [_] %))})))
 
-(defn set-mouse-over 
-  "sets a state of one of the answers to be rendered as special"
-  [app id state]
-  (find-current-elements)
-  (om/transact! app 
-                (fn [app] 
-                  (update-in 
-                   app 
-                   [:query :task/answer]
-                   #(reduce 
-                     (fn [result new] 
-                       (conj result 
-                             (if (= id new) 
-                               (assoc new :mouseover state) 
-                               new))) 
-                     #{} %)))))
 
 (defn
   task-view 
@@ -93,11 +77,7 @@ must return an om component - something that implements om/IRender
                                           :onMouseOver #(set-mouse-over app answer true)
                                           :onMouseOut #(set-mouse-over app answer false)} 
                                      (str (:answer/text answer))))
-                           (get-in app [:query :task/answer])))))
-    (comment
-      om/IDidUpdate
-      (did-update [this prev-props prev-state]
-                  (println "in update!!!!")))))
+                           (get-in app [:query :task/answer])))))))
 
 ;;establish an Om rendering loop on a specific element of the DOM
 (om/root task-view app-state
